@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Документация: ΔОS-Οлимп</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; max-width: 700px; margin: auto; background: #111; color: #ddd; line-height: 1.6; }
+    h1, h2 { color: #fff; border-bottom: 1px solid #444; padding-bottom: 0.2em; }
+    code { background: #222; padding: 0 0.3em; border-radius: 3px; }
+    section { margin-bottom: 2em; }
+  </style>
+</head>
+<body>
+
+<h1>Документация: ΔОS-Οлимп</h1>
+
+<section>
+  <h2>Общее описание</h2>
+  <p>ΔОS-Οлимп — текстовая игра с выбором, оформленная в стиле античного интерфейса. Игрок исследует мир, переходя между сценами по выделенным словам.</p>
+  <p>Игра имеет систему сохранений, вывод текста с эффектом печати и возможность загрузки внешнего JSON с описанием сцен.</p>
+</section>
+
+<section>
+  <h2>Основные возможности</h2>
+  <ul>
+    <li><strong>Стартовое меню</strong>: новая игра, загрузка, помощь, выход.</li>
+    <li><strong>Типографика</strong>: текст выводится постепенно, с возможностью пропустить.</li>
+    <li><strong>Выборы</strong>: слова с классом <code>choice</code> переходят к новым сценам.</li>
+    <li><strong>Сохранение</strong>: 6 слотов, имена по дате и времени.</li>
+    <li><strong>Загрузка</strong>: из главного меню или в процессе игры.</li>
+    <li><strong>Подтверждение</strong>: перед сохранением или загрузкой.</li>
+    <li><strong>Локальное хранилище</strong>: все данные сохраняются в <code>localStorage</code>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Ключевые функции</h2>
+  <dl>
+    <dt><code>appendScene(id)</code></dt>
+    <dd>Выводит сцену по ключу <code>id</code> из объекта <code>P</code>.</dd>
+
+    <dt><code>typeWrite(html, container, done)</code></dt>
+    <dd>Постепенно выводит <code>html</code> в контейнер. При клике — сразу весь текст.</dd>
+
+    <dt><code>renderMainMenu()</code></dt>
+    <dd>Отображает стартовое меню игры.</dd>
+
+    <dt><code>startGame()</code></dt>
+    <dd>Запускает игру, показывает первую сцену.</dd>
+
+    <dt><code>openSlotMenu(mode, fromMain)</code></dt>
+    <dd>Открывает меню сохранения/загрузки. <code>mode</code>: 'save' или 'load'.</dd>
+
+    <dt><code>renderConfirmMenu(mode, slot)</code></dt>
+    <dd>Показывает окно подтверждения действия с указанным слотом.</dd>
+
+    <dt><code>confirmSave(slot)</code></dt>
+    <dd>Сохраняет текущую сцену в слот <code>slot</code>.</dd>
+
+    <dt><code>confirmLoad(slot)</code></dt>
+    <dd>Загружает сцену из слота <code>slot</code> и переходит к ней.</dd>
+
+    <dt><code>cancelSlotMenu()</code></dt>
+    <dd>Возвращает из меню сохранений/загрузок в игру или в главное меню.</dd>
+  </dl>
+</section>
+
+<section>
+  <h2>Структура сцен (P)</h2>
+  <p>Объект <code>P</code> содержит все сцены. Каждая сцена — объект с ключом <code>html</code>:</p>
+  <pre>{
+  "start": {
+    "html": "Я стою перед <span class=\"choice\" data-n=\"temple\">входом</span>…"
+  }
+}</pre>
+</section>
+
+<section>
+  <h2>Заметки</h2>
+  <ul>
+    <li>Игра не требует серверной части, работает в браузере или в сборке Tauri.</li>
+    <li>Не используется внешнее CSS, только базовые классы.</li>
+    <li>Сценарий можно расширять без изменений в логике, редактируя JSON или объект <code>P</code>.</li>
+  </ul>
+</section>
+
+</body>
+</html>

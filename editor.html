@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Scene Editor</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    label { display: block; margin-top: .5em; }
+    input, textarea { width: 100%; box-sizing: border-box; }
+    button { margin-top: .5em; }
+    pre { background: #f0f0f0; padding: .5em; max-height: 200px; overflow: auto; }
+  </style>
+</head>
+<body>
+
+  <h1>Редактор сцен</h1>
+
+  <label>Scene ID:
+    <input type="text" id="sceneId" placeholder="например, start">
+  </label>
+
+  <label>HTML-тело сцены:
+    <textarea id="sceneHtml" rows="6" placeholder="Текст с &lt;span class=&#34;choice&#34; data-n=&#34;next&#34;&gt;…"></textarea>
+  </label>
+
+  <button id="addBtn">Добавить сцену</button>
+  <button id="exportBtn">Выгрузить JSON</button>
+
+  <h2>Текущие сцены</h2>
+  <ul id="sceneList"></ul>
+
+  <h2>JSON</h2>
+  <pre id="output">{} </pre>
+
+<script>
+  const scenes = {};
+  const sceneList = document.getElementById('sceneList');
+  const output = document.getElementById('output');
+  const idInput = document.getElementById('sceneId');
+  const htmlInput = document.getElementById('sceneHtml');
+
+  document.getElementById('addBtn').onclick = () => {
+    const id = idInput.value.trim();
+    const html = htmlInput.value.trim().replace(/\r\n/g,'\n');
+    if (!id || !html) return alert('Укажите ID и HTML');
+    scenes[id] = { html };
+    renderList();
+    idInput.value = '';
+    htmlInput.value = '';
+  };
+
+  function renderList() {
+    sceneList.innerHTML = '';
+    Object.keys(scenes).forEach(id => {
+      const li = document.createElement('li');
+      li.textContent = id;
+      sceneList.appendChild(li);
+    });
+    output.textContent = JSON.stringify(scenes, null, 2);
+  }
+
+  document.getElementById('exportBtn').onclick = () => {
+    output.textContent = JSON.stringify(scenes, null, 2);
+  };
+
+  // инициализация
+  renderList();
+</script>
+
+</body>
+</html>
