@@ -359,6 +359,9 @@ function typeWrite(html, container, done) {
 function appendScene(id) {
   clearTimeout(typerTimer);
   typing = false;
+  const prevOv = document.querySelector('.vn-overlay');
+  if (prevOv) prevOv.remove();
+  document.removeEventListener('keydown', vnKeyHandler);
   currentScene = id;
 
   // деактивируем прежние выборы
@@ -367,14 +370,101 @@ function appendScene(id) {
     el.onclick = null;
   });
 
+  const html = P[id].html;
+  if (html.includes('class="vn-overlay"')) {
+    openVNScene(html);
+    return;
+  }
+
   // создаём блок и печатаем
   const block = document.createElement('div');
   screen.appendChild(block);
-  typeWrite(P[id].html, block, () => {
+  typeWrite(html, block, () => {
     block.querySelectorAll('[data-n]').forEach(el => {
       el.classList.add('choice');
       el.onclick = () => { if (!typing) appendScene(el.dataset.n); };
     });
     block.scrollIntoView({ block: 'end' });
   });
+}
+
+let vnKeyHandler = null;
+let vnTyping = false;
+let vnTimer = null;
+let vnSkip = null;
+
+function typeVNLine(textEl, done) {
+  if (!textEl) { done(); return; }
+  vnTyping = true;
+  const html = textEl.innerHTML;
+  textEl.innerHTML = '';
+  let i = 0;
+  function finish() { vnTyping = false; textEl.innerHTML = html; done(); }
+  function skip() { if (!vnTyping) return; clearTimeout(vnTimer); finish(); }
+  vnSkip = skip;
+  function step() {
+    if (i >= html.length) { finish(); return; }
+    if (html[i] === '<') {
+      const j = html.indexOf('>', i) + 1;
+      textEl.innerHTML += html.slice(i, j);
+      i = j;
+    } else {
+      textEl.innerHTML += html[i++];
+    }
+    vnTimer = setTimeout(step, 20);
+  }
+  step();
+}
+
+function openVNScene(html) {
+  const ov = document.createElement('div');
+  ov.className = 'vn-overlay';
+  ov.innerHTML = html;
+  document.body.appendChild(ov);
+  const steps = ov.querySelectorAll('.vn-container');
+  let idx = 0;
+  steps.forEach((el, i) => { if (i > 0) el.style.display = 'none'; });
+
+  function activate(el) {
+    el.querySelectorAll('[data-n]').forEach(c => {
+      c.classList.add('choice');
+      c.onclick = () => {
+        ov.remove();
+        document.removeEventListener('keydown', vnKeyHandler);
+        appendScene(c.dataset.n);
+      };
+    });
+  }
+
+  function playStep(el) {
+    typeVNLine(el.querySelector('.vn-text'), () => activate(el));
+  }
+
+  steps[0].classList.add('vn-show');
+  playStep(steps[0]);
+
+  function showNext() {
+    if (vnTyping) { vnSkip(); return; }
+    if (idx < steps.length - 1) {
+      steps[idx].classList.add('vn-old');
+      idx++;
+      const next = steps[idx];
+      next.style.display = '';
+      next.offsetWidth;
+      next.classList.add('vn-show');
+      playStep(next);
+    } else {
+      ov.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', vnKeyHandler);
+    }
+  }
+
+  function onClick(e) {
+    if (e.target.closest('.choice')) return;
+    showNext();
+  }
+
+  vnKeyHandler = e => { if (e.key === 'Enter') { e.preventDefault(); showNext(); } };
+  ov.addEventListener('click', onClick);
+  document.addEventListener('keydown', vnKeyHandler);
 }
