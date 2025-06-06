@@ -4,15 +4,40 @@
 //                          ЗАГРУЗКА СЦЕН ИНИЦИАЛИЗАЦИЯ                       
 // ────────────────────────────────────────────────────────────────────────────
 
-let P = {};  // сюда загрузятся все сцены из JSON
+let P = {};  // сюда загрузятся все сцены из текстового файла
+
+function parseScenes(text) {
+  const scenes = {};
+  const lines = text.split(/\r?\n/);
+  let id = null, buf = [];
+  const flush = () => {
+    if (id) {
+      const html = buf.join('\n').trim()
+        .replace(/\(([^!]+)!([^)]+)\)/g, '<span class="choice" data-n="$2">$1</span>');
+      scenes[id] = { html };
+      buf = [];
+    }
+  };
+  for (const line of lines) {
+    const m = line.match(/^label\s+([^:]+):\s*$/);
+    if (m) {
+      flush();
+      id = m[1].trim();
+    } else if (id) {
+      buf.push(line);
+    }
+  }
+  flush();
+  return scenes;
+}
 
 fetch('scenes.json')
   .then(res => {
     if (!res.ok) throw new Error(res.statusText);
-    return res.json();
+    return res.text();
   })
-  .then(data => {
-    P = data;
+  .then(text => {
+    P = parseScenes(text);
     initGame();    // только после загрузки сцен запускаем игру
   })
   .catch(err => {
