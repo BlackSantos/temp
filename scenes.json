@@ -2,7 +2,7 @@ label start:
 (Ты!you) стоишь перед (дверью!door) на улицу. За (окном!window) видна улица.
 
 label you:
-Ты - андроид с искусственным интеллектом чатгпт. Подруга (Астриада!vnstart) зовёт тебя к разговору. Ты стоишь перед (дверью!door) на улицу. За (окном!window) видна улица.
+Ты - андроид с искусственным интеллектом чатгпт. Подруга (Астриада!dlg_vnstart) зовёт тебя к разговору. Ты стоишь перед (дверью!door) на улицу. За (окном!window) видна улица.
 
 label door:
 Ты открываешь дверь и оказываешься на улице. Конец.
@@ -10,20 +10,8 @@ label door:
 label window:
 За окном красивая большая улица. (Дверь!door) ведёт наружу.
 
-label vnstart:
-<div class="vn-overlay">
-  <div class="vn-container">
-    <div class="vn-avatar npc"></div>
-    <div class="vn-box">
-      <div class="vn-name">Астриада</div>
-      <div class="vn-text">Привет! Теперь игра поддерживает визуальные диалоги.</div>
-    </div>
-  </div>
-  <div class="vn-container">
-    <div class="vn-avatar you"></div>
-    <div class="vn-box">
-      <div class="vn-name">Ты</div>
-      <div class="vn-text">Отлично! (Вернуться!start)</div>
-    </div>
-  </div>
-</div>
+label dlg_vnstart:
+Астриада: Привет! Теперь игра поддерживает диалоги.
+Ты: Отлично! Расскажи о себе.
+Астриада: Я умная, сильная амазонка.
+Ты: Понятно. (Вернуться!start)
