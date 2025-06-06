@@ -12,8 +12,8 @@ function parseScenes(text) {
   let id = null, buf = [];
   const flush = () => {
     if (!id) return;
-    let raw = buf.join('\n').trim();
-    const lines = raw.split(/\n+/);
+    let raw = buf.join('\n');
+    const lines = raw.split(/\n/);
     let clear = false;
     const filtered = [];
     for (const line of lines) {
@@ -24,7 +24,7 @@ function parseScenes(text) {
       }
     }
     raw = filtered.join('\n').trim();
-    const dlLines = raw.split(/\n+/).filter(l => l);
+    const dlLines = raw.split(/\n/).filter(l => l.trim());
     const dialog = dlLines.length > 1 && dlLines.every(l => /^\s*[^:]+:\s*/.test(l));
     if (dialog) {
       const containers = dlLines.map(line => {
@@ -39,8 +39,15 @@ function parseScenes(text) {
       }).join('');
       scenes[id] = { html: `<div class="vn-overlay">${containers}</div>` };
     } else {
-      const html = raw.replace(/\(([^!]+)!([^)]+)\)/g,
-        '<span class="choice" data-n="$2">$1</span>');
+      const paragraphs = raw.split(/\n\s*\n/).filter(p => p.trim());
+      const html = paragraphs.map(p => {
+        return `<p>` +
+          p.trim()
+            .replace(/\(([^!]+)!([^)]+)\)/g,
+                     '<span class="choice" data-n="$2">$1</span>')
+            .replace(/\n/g, '<br>') +
+          `</p>`;
+      }).join('');
       scenes[id] = { html };
     }
     if (clear) scenes[id].clear = true;

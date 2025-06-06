@@ -87,6 +87,9 @@ html,body{
   white-space:pre-wrap;
   scrollbar-width:none;
 }
+#screen > div + div{margin-top:0.8em;}
+#screen p{margin:0 0 0.8em;}
+#screen p:last-child{margin-bottom:0;}
 #screen::-webkit-scrollbar{width:0;height:0;}
 
 /* кликабельные слова-выборы */
