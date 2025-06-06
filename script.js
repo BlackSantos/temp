@@ -234,22 +234,23 @@ function openHelp(fromMain) {
   screen.hidden  = true;
   topbar.style.visibility = 'hidden';
 
-  const lines = [
+  const info = [
     'ΔОS‑Олимп — демонстрационная игра.',
     'Автор: Codex',
     'Дата: 2025',
     'Лицензия: MIT',
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    'Назад'
+    'Первый год учебы в израильском Технионе подошел к концу. Взяв несколько дней каникул, главная героиня решает съездить в родной Токио и повидаться с оставшимися там друзьями детства. Прогулки по ночному городу и посиделки в кафе, наполненные разговорами о прошлом, отдаются теплыми воспоминаниями в сердце, пока не раскрывается правда о том, сколь многое успело измениться и произойти с друзьями героини всего за один год. И теперь израильские сирены воздушных атак уже не кажутся ей такими уж страшными.',
+    'Для перехода к следующей сцене кликайте по подсвеченным словам.'
   ];
-  const maxLen = Math.max(...lines.map(t => t.length)) + 2;
+  const opts = ['Назад'];
+
+  const maxLen = Math.max(...opts.map(t => t.length)) + 2;
   document.documentElement.style.setProperty('--menu-w', `${maxLen}ch`);
 
   menu.innerHTML =
     '<div class="menu-title">Помощь</div>' +
-    lines.slice(0, -1)
-      .map(x => `<div class="menu-item menu-info">${x}</div>`).join('') +
-    `<div class="menu-item">${lines.at(-1)}</div>`;
+    info.map(x => `<div class="menu-item menu-info">${x}</div>`).join('') +
+    opts.map(x => `<div class="menu-item">${x}</div>`).join('');
   menu.style.display = 'flex';
 }
 

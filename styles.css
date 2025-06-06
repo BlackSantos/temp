@@ -143,6 +143,8 @@ html,body{
 
 /* информационные строки в окне помощи */
 .menu-info{
+  width:auto;
+  max-width:90vw;
   text-align:left;
   padding-left:1ch;
   pointer-events:none;
