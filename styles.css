@@ -141,3 +141,10 @@ html,body{
   color:var(--bg);
 }
 
+/* информационные строки в окне помощи */
+.menu-info{
+  text-align:left;
+  padding-left:1ch;
+  pointer-events:none;
+}
+

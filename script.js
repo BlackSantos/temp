@@ -58,7 +58,7 @@ const topbar = document.getElementById('topbar');
 const MAIN_ITEMS = ["Новая игра", "Загрузить игру", "Помощь", "Выход"];
 
 // Состояния
-let menuMode      = null;   // 'main' | 'save' | 'load' | 'confirmSave' | 'confirmLoad'
+let menuMode      = null;   // 'main' | 'save' | 'load' | 'confirmSave' | 'confirmLoad' | 'help'
 let currentScene  = 'start';
 let pendingSlot   = null;   // номер слота для подтверждения
 let gameStarted   = false;  // была ли запущена игра
@@ -92,7 +92,7 @@ function initGame() {
     const a = btn.dataset.a;
     if (a === 'save')  btn.onclick = () => openSlotMenu('save', false);
     if (a === 'load')  btn.onclick = () => openSlotMenu('load', false);
-    if (a === 'help')  btn.onclick = () => alert('Кликайте по выделенным словам для перехода');
+  if (a === 'help')  btn.onclick = () => openHelp(false);
     if (a === 'exit')  btn.onclick = () => location.reload();
   });
 
@@ -130,7 +130,7 @@ menu.onclick = e => {
   if (menuMode === 'main') {
     if (txt === "Новая игра")      return startGame();
     if (txt === "Загрузить игру")  return openSlotMenu('load', true);
-    if (txt === "Помощь")          return alert("Кликайте по выделенным словам для перехода");
+    if (txt === "Помощь")          return openHelp(true);
     if (txt === "Выход")           return location.reload();
   }
 
@@ -164,6 +164,11 @@ menu.onclick = e => {
       openSlotMenu('load', openedFromMain);
     }
     return;
+  }
+
+  // Окно помощи
+  if (menuMode === 'help') {
+    return cancelSlotMenu();
   }
 };
 
@@ -216,6 +221,35 @@ function openSlotMenu(mode, fromMain) {
   menu.innerHTML =
     `<div class="menu-title">${mode === 'save' ? 'Сохранить игру' : 'Загрузить игру'}</div>` +
     lines.map(x => `<div class="menu-item" style="text-align:left; padding-left:1ch;">${x}</div>`).join('');
+  menu.style.display = 'flex';
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//                               ОКНО ПОМОЩИ
+// ────────────────────────────────────────────────────────────────────────────
+
+function openHelp(fromMain) {
+  openedFromMain = fromMain;
+  menuMode       = 'help';
+  screen.hidden  = true;
+  topbar.style.visibility = 'hidden';
+
+  const lines = [
+    'ΔОS‑Олимп — демонстрационная игра.',
+    'Автор: Codex',
+    'Дата: 2025',
+    'Лицензия: MIT',
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    'Назад'
+  ];
+  const maxLen = Math.max(...lines.map(t => t.length)) + 2;
+  document.documentElement.style.setProperty('--menu-w', `${maxLen}ch`);
+
+  menu.innerHTML =
+    '<div class="menu-title">Помощь</div>' +
+    lines.slice(0, -1)
+      .map(x => `<div class="menu-item menu-info">${x}</div>`).join('') +
+    `<div class="menu-item">${lines.at(-1)}</div>`;
   menu.style.display = 'flex';
 }
 
