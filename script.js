@@ -8,17 +8,45 @@ let P = {};  // сюда загрузятся все сцены из текст�
 
 function parseScenes(text) {
   const scenes = {};
-  const lines = text.split(/\r?\n/);
+  const LS = text.split(/\r?\n/);
   let id = null, buf = [];
   const flush = () => {
-    if (id) {
-      const html = buf.join('\n').trim()
-        .replace(/\(([^!]+)!([^)]+)\)/g, '<span class="choice" data-n="$2">$1</span>');
-      scenes[id] = { html };
-      buf = [];
+    if (!id) return;
+    let raw = buf.join('\n').trim();
+    const lines = raw.split(/\n+/);
+    let clear = false;
+    const filtered = [];
+    for (const line of lines) {
+      if (/^\s*clear\s*$/i.test(line)) {
+        clear = true;
+      } else {
+        filtered.push(line);
+      }
     }
+    raw = filtered.join('\n').trim();
+    const dlLines = raw.split(/\n+/).filter(l => l);
+    const dialog = dlLines.length > 1 && dlLines.every(l => /^\s*[^:]+:\s*/.test(l));
+    if (dialog) {
+      const containers = dlLines.map(line => {
+        const m = line.match(/^([^:]+):\s*(.*)$/);
+        const name = m[1].trim();
+        const avatar = name === 'Ты' ? 'you' : 'npc';
+        const text = m[2].replace(/\(([^!]+)!([^)]+)\)/g,
+          '<span class="choice" data-n="$2">$1</span>');
+        return `<div class="vn-container"><div class="vn-avatar ${avatar}"></div>` +
+               `<div class="vn-box"><div class="vn-name">${name}</div>` +
+               `<div class="vn-text">${text}</div></div></div>`;
+      }).join('');
+      scenes[id] = { html: `<div class="vn-overlay">${containers}</div>` };
+    } else {
+      const html = raw.replace(/\(([^!]+)!([^)]+)\)/g,
+        '<span class="choice" data-n="$2">$1</span>');
+      scenes[id] = { html };
+    }
+    if (clear) scenes[id].clear = true;
+    buf = [];
   };
-  for (const line of lines) {
+  for (const line of LS) {
     const m = line.match(/^label\s+([^:]+):\s*$/);
     if (m) {
       flush();
@@ -326,6 +354,13 @@ function typeWrite(html, container, done) {
   typing = true;
   let i = 0, out = '', speed = 5;
   const scr = screen;
+  const fastIdx = html.indexOf('{fast}');
+  if (fastIdx !== -1) {
+    out = html.slice(0, fastIdx);
+    container.innerHTML = out;
+    html = html.slice(0, fastIdx) + html.slice(fastIdx + 6);
+    i = fastIdx;
+  }
   function skip() {
     if (!typing) return;
     clearTimeout(typerTimer);
@@ -370,7 +405,8 @@ function appendScene(id) {
     el.onclick = null;
   });
 
-  const html = P[id].html;
+  const { html, clear } = P[id];
+  if (clear) screen.innerHTML = '';
   if (html.includes('class="vn-overlay"')) {
     openVNScene(html);
     return;
@@ -396,9 +432,15 @@ let vnSkip = null;
 function typeVNLine(textEl, done) {
   if (!textEl) { done(); return; }
   vnTyping = true;
-  const html = textEl.innerHTML;
+  let html = textEl.innerHTML;
   textEl.innerHTML = '';
+  const fastIdx = html.indexOf('{fast}');
   let i = 0;
+  if (fastIdx !== -1) {
+    textEl.innerHTML = html.slice(0, fastIdx);
+    html = html.slice(0, fastIdx) + html.slice(fastIdx + 6);
+    i = fastIdx;
+  }
   function finish() { vnTyping = false; textEl.innerHTML = html; done(); }
   function skip() { if (!vnTyping) return; clearTimeout(vnTimer); finish(); }
   vnSkip = skip;
