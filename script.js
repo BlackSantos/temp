@@ -4,15 +4,40 @@
 //                          ЗАГРУЗКА СЦЕН ИНИЦИАЛИЗАЦИЯ                       
 // ────────────────────────────────────────────────────────────────────────────
 
-let P = {};  // сюда загрузятся все сцены из JSON
+let P = {};  // сюда загрузятся все сцены из текстового файла
+
+function parseScenes(text) {
+  const scenes = {};
+  const lines = text.split(/\r?\n/);
+  let id = null, buf = [];
+  const flush = () => {
+    if (id) {
+      const html = buf.join('\n').trim()
+        .replace(/\(([^!]+)!([^)]+)\)/g, '<span class="choice" data-n="$2">$1</span>');
+      scenes[id] = { html };
+      buf = [];
+    }
+  };
+  for (const line of lines) {
+    const m = line.match(/^label\s+([^:]+):\s*$/);
+    if (m) {
+      flush();
+      id = m[1].trim();
+    } else if (id) {
+      buf.push(line);
+    }
+  }
+  flush();
+  return scenes;
+}
 
 fetch('scenes.json')
   .then(res => {
     if (!res.ok) throw new Error(res.statusText);
-    return res.json();
+    return res.text();
   })
-  .then(data => {
-    P = data;
+  .then(text => {
+    P = parseScenes(text);
     initGame();    // только после загрузки сцен запускаем игру
   })
   .catch(err => {
@@ -33,7 +58,7 @@ const topbar = document.getElementById('topbar');
 const MAIN_ITEMS = ["Новая игра", "Загрузить игру", "Помощь", "Выход"];
 
 // Состояния
-let menuMode      = null;   // 'main' | 'save' | 'load' | 'confirmSave' | 'confirmLoad'
+let menuMode      = null;   // 'main' | 'save' | 'load' | 'confirmSave' | 'confirmLoad' | 'help'
 let currentScene  = 'start';
 let pendingSlot   = null;   // номер слота для подтверждения
 let gameStarted   = false;  // была ли запущена игра
@@ -67,7 +92,7 @@ function initGame() {
     const a = btn.dataset.a;
     if (a === 'save')  btn.onclick = () => openSlotMenu('save', false);
     if (a === 'load')  btn.onclick = () => openSlotMenu('load', false);
-    if (a === 'help')  btn.onclick = () => alert('Кликайте по выделенным словам для перехода');
+  if (a === 'help')  btn.onclick = () => openHelp(false);
     if (a === 'exit')  btn.onclick = () => location.reload();
   });
 
@@ -105,7 +130,7 @@ menu.onclick = e => {
   if (menuMode === 'main') {
     if (txt === "Новая игра")      return startGame();
     if (txt === "Загрузить игру")  return openSlotMenu('load', true);
-    if (txt === "Помощь")          return alert("Кликайте по выделенным словам для перехода");
+    if (txt === "Помощь")          return openHelp(true);
     if (txt === "Выход")           return location.reload();
   }
 
@@ -139,6 +164,11 @@ menu.onclick = e => {
       openSlotMenu('load', openedFromMain);
     }
     return;
+  }
+
+  // Окно помощи
+  if (menuMode === 'help') {
+    return cancelSlotMenu();
   }
 };
 
@@ -191,6 +221,36 @@ function openSlotMenu(mode, fromMain) {
   menu.innerHTML =
     `<div class="menu-title">${mode === 'save' ? 'Сохранить игру' : 'Загрузить игру'}</div>` +
     lines.map(x => `<div class="menu-item" style="text-align:left; padding-left:1ch;">${x}</div>`).join('');
+  menu.style.display = 'flex';
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//                               ОКНО ПОМОЩИ
+// ────────────────────────────────────────────────────────────────────────────
+
+function openHelp(fromMain) {
+  openedFromMain = fromMain;
+  menuMode       = 'help';
+  screen.hidden  = true;
+  topbar.style.visibility = 'hidden';
+
+  const info = [
+    'ΔОS‑Олимп — демонстрационная игра.',
+    'Автор: Codex',
+    'Дата: 2025',
+    'Лицензия: MIT',
+    'Первый год учебы в израильском Технионе подошел к концу. Взяв несколько дней каникул, главная героиня решает съездить в родной Токио и повидаться с оставшимися там друзьями детства. Прогулки по ночному городу и посиделки в кафе, наполненные разговорами о прошлом, отдаются теплыми воспоминаниями в сердце, пока не раскрывается правда о том, сколь многое успело измениться и произойти с друзьями героини всего за один год. И теперь израильские сирены воздушных атак уже не кажутся ей такими уж страшными.',
+    'Для перехода к следующей сцене кликайте по подсвеченным словам.'
+  ];
+  const opts = ['Назад'];
+
+  const maxLen = Math.max(...opts.map(t => t.length)) + 2;
+  document.documentElement.style.setProperty('--menu-w', `${maxLen}ch`);
+
+  menu.innerHTML =
+    '<div class="menu-title">Помощь</div>' +
+    info.map(x => `<div class="menu-item menu-info">${x}</div>`).join('') +
+    opts.map(x => `<div class="menu-item">${x}</div>`).join('');
   menu.style.display = 'flex';
 }
 
